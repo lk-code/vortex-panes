@@ -386,8 +386,8 @@ void Application::renderFrame() {
 #ifdef VP_DEBUG
     if (m_fps.addFrame(frameEnd, frameEnd - frameStart)) {
         const FpsCounter::Report& report = m_fps.report();
-        VP_DEBUG_LOG(L"%.1f fps, CPU frame time avg %.3f ms, max %.3f ms, %zu flakes", report.fps,
-                     report.averageCpuMs, report.maxCpuMs, m_snowfall.flakes().size());
+        VP_DEBUG_LOG(L"%.1f fps, CPU frame time avg %.3f ms, max %.3f ms, %zu flakes", report.fps, report.averageCpuMs,
+                     report.maxCpuMs, m_snowfall.flakes().size());
     }
 #endif
     m_pacer.advance(frameEnd);

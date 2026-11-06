@@ -35,10 +35,8 @@ WindField::WindField(uint64_t seed, const WindParams& params) noexcept
     : m_params(params), m_slowSeed(seed), m_fastSeed(seed ^ kFastOctaveSalt) {}
 
 float WindField::sample(double timeSeconds) const noexcept {
-    const float slow =
-        m_params.slowPeriod > 0.0f ? valueNoise(m_slowSeed, timeSeconds / m_params.slowPeriod) : 0.0f;
-    const float fast =
-        m_params.fastPeriod > 0.0f ? valueNoise(m_fastSeed, timeSeconds / m_params.fastPeriod) : 0.0f;
+    const float slow = m_params.slowPeriod > 0.0f ? valueNoise(m_slowSeed, timeSeconds / m_params.slowPeriod) : 0.0f;
+    const float fast = m_params.fastPeriod > 0.0f ? valueNoise(m_fastSeed, timeSeconds / m_params.fastPeriod) : 0.0f;
     const float noise = (slow + m_params.fastWeight * fast) / (1.0f + m_params.fastWeight);
     return m_params.baseSpeed + m_params.amplitude * noise;
 }

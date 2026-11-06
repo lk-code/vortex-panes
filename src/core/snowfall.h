@@ -29,9 +29,9 @@ struct SnowfallParams {
     uint32_t capacity = 4000;        // hard upper limit of flakes; nothing spawns while full
     float spawnRatePer1000Px = 8.0f; // flakes per second per 1000 px of covered screen width
     std::array<float, kDepthLayerCount> layerWeights{0.5f, 0.3f, 0.2f}; // back, middle, front
-    DepthRange radius{1.0f, 4.0f};                                       // px
-    float radiusJitter = 0.2f;                                           // +- share of the radius
-    DepthRange fallSpeed{40.0f, 120.0f};                                 // px/s, terminal velocity
+    DepthRange radius{1.0f, 4.0f};                                      // px
+    float radiusJitter = 0.2f;                                          // +- share of the radius
+    DepthRange fallSpeed{40.0f, 120.0f};                                // px/s, terminal velocity
     DepthRange alpha{0.4f, 1.0f};
     float alphaJitter = 0.15f;              // up to this share more transparent
     DepthRange windFactor{0.4f, 1.0f};      // share of the wind speed (parallax)

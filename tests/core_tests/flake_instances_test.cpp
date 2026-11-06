@@ -41,13 +41,13 @@ TEST(CollectVisibleFlakes, FlakeOnTheBorderAppearsOnBothMonitors) {
 TEST(CollectVisibleFlakes, FlakesOutsideAreSkipped) {
     // Radius 2 gives an extent of 3 px: just touching the edge is not visible.
     const std::array flakes = {
-        flake(-3.0f, 100.0f),     // left of the right monitor, touching
-        flake(2563.0f, 100.0f),   // right of it, touching
-        flake(500.0f, -3.0f),     // above, touching
-        flake(500.0f, 1443.0f),   // below, touching
-        flake(-2.9f, 100.0f),     // overlaps by 0.1 px
-        flake(500.0f, 1442.9f),   // overlaps by 0.1 px
-        flake(-5000.0f, 100.0f),  // far away
+        flake(-3.0f, 100.0f),    // left of the right monitor, touching
+        flake(2563.0f, 100.0f),  // right of it, touching
+        flake(500.0f, -3.0f),    // above, touching
+        flake(500.0f, 1443.0f),  // below, touching
+        flake(-2.9f, 100.0f),    // overlaps by 0.1 px
+        flake(500.0f, 1442.9f),  // overlaps by 0.1 px
+        flake(-5000.0f, 100.0f), // far away
     };
     std::array<vp::FlakeInstance, 8> out{};
     ASSERT_EQ(vp::collectVisibleFlakes(flakes, kRightMonitor, out), 2u);

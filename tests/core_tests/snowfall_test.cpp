@@ -235,8 +235,8 @@ TEST(Snowfall, DepthLayersFollowTheirWeightsAndRanges) {
         speed[layer] += flake.vy;
     }
     for (size_t layer = 0; layer < vp::kDepthLayerCount; ++layer) {
-        EXPECT_NEAR(static_cast<double>(counts[layer]) / static_cast<double>(flakes.size()),
-                    params.layerWeights[layer], 0.02)
+        EXPECT_NEAR(static_cast<double>(counts[layer]) / static_cast<double>(flakes.size()), params.layerWeights[layer],
+                    0.02)
             << "layer " << layer;
         radius[layer] /= counts[layer];
         alpha[layer] /= counts[layer];
