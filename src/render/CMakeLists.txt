@@ -39,8 +39,8 @@ function(vp_compile_shader out_header name profile var_name)
     set(${out_header} ${header} PARENT_SCOPE)
 endfunction()
 
-vp_compile_shader(shape_vs_header shape_vs vs_4_0 g_shapeVS)
-vp_compile_shader(shape_ps_header shape_ps ps_4_0 g_shapePS)
+vp_compile_shader(flake_vs_header flake_vs vs_4_0 g_flakeVS)
+vp_compile_shader(flake_ps_header flake_ps ps_4_0 g_flakePS)
 
 add_library(vp_render STATIC
     graphics_device.h
@@ -51,10 +51,10 @@ add_library(vp_render STATIC
     renderer.cpp
     shaders.h
     shaders.cpp
-    ${VP_SHADER_DIR}/shape_vs.hlsl
-    ${VP_SHADER_DIR}/shape_ps.hlsl
-    ${shape_vs_header}
-    ${shape_ps_header}
+    ${VP_SHADER_DIR}/flake_vs.hlsl
+    ${VP_SHADER_DIR}/flake_ps.hlsl
+    ${flake_vs_header}
+    ${flake_ps_header}
 )
 # The .hlsl files carry the custom command (MAIN_DEPENDENCY), so MSBuild's own HLSL
 # compiler is not used for them.

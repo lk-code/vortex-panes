@@ -4,7 +4,9 @@
 add_executable(core_tests
     core_tests/build_info_test.cpp
     core_tests/command_line_test.cpp
+    core_tests/fade_test.cpp
     core_tests/fixed_timestep_test.cpp
+    core_tests/flake_instances_test.cpp
     core_tests/flake_pool_test.cpp
     core_tests/fps_counter_test.cpp
     core_tests/frame_pacer_test.cpp
@@ -14,7 +16,6 @@ add_executable(core_tests
     core_tests/pcg32_test.cpp
     core_tests/snowfall_test.cpp
     core_tests/string_block_test.cpp
-    core_tests/test_scene_test.cpp
     core_tests/text_format_test.cpp
     core_tests/tray_menu_test.cpp
     core_tests/tray_theme_test.cpp

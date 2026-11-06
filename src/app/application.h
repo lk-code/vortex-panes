@@ -5,8 +5,10 @@
 #include "win32_handles.h"
 
 #include "core/command_line.h"
+#include "core/fixed_timestep.h"
 #include "core/fps_counter.h"
 #include "core/frame_pacer.h"
+#include "core/snowfall.h"
 #include "settings/settings_window.h"
 
 #include <memory>
@@ -59,11 +61,15 @@ private:
     std::unique_ptr<Renderer> m_renderer;
     UniqueHandle m_frameTimer;
     int64_t m_ticksPerSecond;
-    int64_t m_startTicks = 0;
     int64_t m_lastTopmostRefresh = 0;
     FramePacer m_pacer;
     FpsCounter m_fps;
     bool m_rendering = false;
+
+    // Simulation at the fixed rate
+    Snowfall m_snowfall;
+    FixedTimestep m_timestep;
+    uint64_t m_fadeStartTick = 0;
 };
 
 } // namespace vp

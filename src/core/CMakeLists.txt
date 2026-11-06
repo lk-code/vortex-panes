@@ -8,10 +8,13 @@ add_library(vp_core STATIC
     build_info.h
     command_line.h
     command_line.cpp
+    fade.h
     fixed_timestep.h
     fixed_timestep.cpp
     flake.h
     flake_pool.cpp
+    flake_instances.h
+    flake_instances.cpp
     fps_counter.h
     fps_counter.cpp
     frame_pacer.h
@@ -26,8 +29,6 @@ add_library(vp_core STATIC
     snowfall.cpp
     string_block.h
     string_block.cpp
-    test_scene.h
-    test_scene.cpp
     text_format.h
     text_format.cpp
     tray_menu.h

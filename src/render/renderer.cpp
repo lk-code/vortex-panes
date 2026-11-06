@@ -1,9 +1,10 @@
 #include "render/renderer.h"
 
+#include "core/flake_instances.h"
 #include "core/hresult.h"
-#include "core/test_scene.h"
 #include "render/shaders.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <iterator>
@@ -14,19 +15,20 @@ namespace vp {
 
 namespace {
 
-// Matches cbuffer FrameConstants in shaders/shape_vs.hlsl (16-byte aligned).
+// Matches cbuffer FrameConstants in shaders/flake_vs.hlsl (16-byte registers).
 struct FrameConstants {
     float originPx[2];
     float invSizePx[2];
+    float opacity;
+    float padding[3];
 };
-static_assert(sizeof(FrameConstants) % 16 == 0);
-
-constexpr UINT kInstanceCapacity = static_cast<UINT>(kTestSceneShapeCount);
+static_assert(sizeof(FrameConstants) == 32);
 
 } // namespace
 
-Renderer::Renderer(HINSTANCE instance, std::span<const RectI> monitors, const GraphicsDeviceOptions& options)
-    : m_graphics(options) {
+Renderer::Renderer(HINSTANCE instance, std::span<const RectI> monitors, const GraphicsDeviceOptions& options,
+                   uint32_t maxFlakes)
+    : m_graphics(options), m_instanceCapacity(std::max<uint32_t>(1, maxFlakes)) {
     createPipeline();
     m_overlays.reserve(monitors.size());
     for (const RectI& bounds : monitors) {
@@ -44,22 +46,21 @@ Renderer::~Renderer() {
 void Renderer::createPipeline() {
     ID3D11Device* device = m_graphics.device();
 
-    const auto vs = shapeVertexShaderBytecode();
-    const auto ps = shapePixelShaderBytecode();
+    const auto vs = flakeVertexShaderBytecode();
+    const auto ps = flakePixelShaderBytecode();
     THROW_IF_FAILED(device->CreateVertexShader(vs.data(), vs.size(), nullptr, &m_vertexShader));
     THROW_IF_FAILED(device->CreatePixelShader(ps.data(), ps.size(), nullptr, &m_pixelShader));
 
     // Per-instance data only; the quad corners come from SV_VertexID.
     const D3D11_INPUT_ELEMENT_DESC layout[] = {
-        {"RECT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(ShapeInstance, left), D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(ShapeInstance, r), D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"SHAPE", 0, DXGI_FORMAT_R32_FLOAT, 0, offsetof(ShapeInstance, shape), D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"FLAKE", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(FlakeInstance, x), D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
     THROW_IF_FAILED(
         device->CreateInputLayout(layout, static_cast<UINT>(std::size(layout)), vs.data(), vs.size(), &m_inputLayout));
 
+    // Written with Map(WRITE_DISCARD) once per monitor and frame; never reallocated.
     D3D11_BUFFER_DESC instanceDesc{};
-    instanceDesc.ByteWidth = sizeof(ShapeInstance) * kInstanceCapacity;
+    instanceDesc.ByteWidth = static_cast<UINT>(sizeof(FlakeInstance)) * m_instanceCapacity;
     instanceDesc.Usage = D3D11_USAGE_DYNAMIC;
     instanceDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     instanceDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -91,11 +92,11 @@ void Renderer::createPipeline() {
     THROW_IF_FAILED(device->CreateRasterizerState(&raster, &m_rasterizerState));
 }
 
-FrameResult Renderer::renderFrame(double timeSeconds) {
+FrameResult Renderer::renderFrame(std::span<const Flake> flakes, float opacity) {
     ID3D11DeviceContext* context = m_graphics.context();
 
     // Pipeline state shared by all overlays.
-    constexpr UINT stride = sizeof(ShapeInstance);
+    constexpr UINT stride = sizeof(FlakeInstance);
     constexpr UINT offset = 0;
     ID3D11Buffer* const instanceBuffer = m_instanceBuffer.Get();
     ID3D11Buffer* const constantBuffer = m_constantBuffer.Get();
@@ -117,24 +118,30 @@ FrameResult Renderer::renderFrame(double timeSeconds) {
             const FrameConstants constants{
                 {static_cast<float>(bounds.left), static_cast<float>(bounds.top)},
                 {1.0f / static_cast<float>(bounds.width()), 1.0f / static_cast<float>(bounds.height())},
+                opacity,
+                {},
             };
             std::memcpy(mapped.pData, &constants, sizeof(constants));
             context->Unmap(constantBuffer, 0);
         }
 
-        const auto shapes = buildTestScene(bounds, timeSeconds);
+        // Only the flakes within this monitor, written straight into the mapped buffer.
+        size_t instanceCount = 0;
         if (SUCCEEDED(context->Map(instanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped))) {
-            std::memcpy(mapped.pData, shapes.data(), sizeof(shapes));
+            const std::span<FlakeInstance> target(static_cast<FlakeInstance*>(mapped.pData), m_instanceCapacity);
+            instanceCount = collectVisibleFlakes(flakes, bounds, target);
             context->Unmap(instanceBuffer, 0);
         }
 
-        ID3D11RenderTargetView* const target = overlay->renderTarget();
-        context->OMSetRenderTargets(1, &target, nullptr);
+        ID3D11RenderTargetView* const renderTarget = overlay->renderTarget();
+        context->OMSetRenderTargets(1, &renderTarget, nullptr);
         const D3D11_VIEWPORT viewport{
             0.0f, 0.0f, static_cast<float>(bounds.width()), static_cast<float>(bounds.height()), 0.0f, 1.0f};
         context->RSSetViewports(1, &viewport);
-        context->ClearRenderTargetView(target, kTransparent);
-        context->DrawInstanced(4, static_cast<UINT>(shapes.size()), 0, 0);
+        context->ClearRenderTargetView(renderTarget, kTransparent);
+        if (instanceCount > 0) {
+            context->DrawInstanced(4, static_cast<UINT>(instanceCount), 0, 0);
+        }
 
         const HRESULT hr = overlay->present();
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {

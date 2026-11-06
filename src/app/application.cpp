@@ -7,6 +7,7 @@
 
 #include "core/app_info.h"
 #include "core/build_info.h"
+#include "core/fade.h"
 #include "core/text_format.h"
 #include "platform/monitors.h"
 #include "render/renderer.h"
@@ -28,6 +29,7 @@ constexpr UINT kTrayMaxAttempts = 30;
 
 constexpr double kTargetFps = 60.0;
 constexpr int64_t kTopmostRefreshSeconds = 2;
+constexpr float kFadeInSeconds = 2.0f;
 
 int64_t qpcFrequency() noexcept {
     LARGE_INTEGER frequency{};
@@ -45,7 +47,8 @@ int64_t qpcNow() noexcept {
 
 Application::Application(HINSTANCE instance, CommandLineOptions options)
     : m_instance(instance), m_options(std::move(options)), m_tray(instance), m_settings(instance, IDI_APP),
-      m_ticksPerSecond(qpcFrequency()), m_pacer(m_ticksPerSecond, kTargetFps), m_fps(m_ticksPerSecond) {}
+      m_ticksPerSecond(qpcFrequency()), m_pacer(m_ticksPerSecond, kTargetFps), m_fps(m_ticksPerSecond),
+      m_snowfall(SnowfallParams{}, static_cast<uint64_t>(qpcNow())), m_timestep(m_ticksPerSecond) {}
 
 Application::~Application() = default;
 
@@ -79,7 +82,7 @@ void Application::createOverlays() {
 #endif
 
     try {
-        m_renderer = std::make_unique<Renderer>(m_instance, bounds, options);
+        m_renderer = std::make_unique<Renderer>(m_instance, bounds, options, m_snowfall.params().capacity);
     } catch (const std::exception& e) {
         VP_DEBUG_LOG(L"graphics initialization failed: %hs", e.what());
         (void)e;
@@ -94,10 +97,23 @@ void Application::createOverlays() {
                  m_renderer->graphics().adapterKind() == AdapterKind::Warp ? L"WARP" : L"hardware",
                  static_cast<unsigned>(m_renderer->graphics().featureLevel()), m_renderer->overlayCount());
 
+    // Run the simulation ahead invisibly, so that the snow is spread evenly from the first
+    // frame on; it then fades in.
+    m_snowfall.setMonitors(bounds);
+#ifdef VP_DEBUG
+    const int64_t prewarmStart = qpcNow();
+    const uint32_t prewarmTicks = m_snowfall.prewarm();
+    VP_DEBUG_LOG(L"snowfall prewarmed: %u ticks in %.1f ms, %zu flakes", prewarmTicks,
+                 static_cast<double>(qpcNow() - prewarmStart) * 1000.0 / static_cast<double>(m_ticksPerSecond),
+                 m_snowfall.flakes().size());
+#else
+    m_snowfall.prewarm();
+#endif
+    m_fadeStartTick = m_snowfall.tickCount();
+
     // Present the first frame before showing the windows, so they never show stale content.
-    m_startTicks = qpcNow();
-    m_lastTopmostRefresh = m_startTicks;
-    m_rendering = m_renderer->renderFrame(0.0) == FrameResult::Ok;
+    m_lastTopmostRefresh = qpcNow();
+    m_rendering = m_renderer->renderFrame(m_snowfall.flakes(), 0.0f) == FrameResult::Ok;
     m_renderer->showOverlays();
 }
 
@@ -308,6 +324,7 @@ int Application::mainLoop() {
     if (m_rendering) {
         const int64_t now = qpcNow();
         m_pacer.start(now);
+        m_timestep.start(now);
         armFrameTimer(now);
     }
 
@@ -340,9 +357,21 @@ int Application::mainLoop() {
 
 void Application::renderFrame() {
     const int64_t frameStart = qpcNow();
-    const double timeSeconds = static_cast<double>(frameStart - m_startTicks) / static_cast<double>(m_ticksPerSecond);
 
-    if (m_renderer->renderFrame(timeSeconds) == FrameResult::DeviceLost) {
+    const int32_t ticks = m_timestep.advance(frameStart);
+    if (ticks == 0) {
+        // No simulation step is due, so the image would not change.
+        m_pacer.advance(frameStart);
+        armFrameTimer(frameStart);
+        return;
+    }
+    for (int32_t i = 0; i < ticks; ++i) {
+        m_snowfall.tick();
+    }
+    const float fadeSeconds = static_cast<float>(m_snowfall.tickCount() - m_fadeStartTick) * kTickSeconds;
+    const float opacity = fadeInOpacity(fadeSeconds, kFadeInSeconds);
+
+    if (m_renderer->renderFrame(m_snowfall.flakes(), opacity) == FrameResult::DeviceLost) {
         // Recreating the device follows in M9; until then rendering stops.
         VP_DEBUG_LOG(L"graphics device lost; rendering stopped");
         stopRendering();
@@ -357,8 +386,8 @@ void Application::renderFrame() {
 #ifdef VP_DEBUG
     if (m_fps.addFrame(frameEnd, frameEnd - frameStart)) {
         const FpsCounter::Report& report = m_fps.report();
-        VP_DEBUG_LOG(L"%.1f fps, CPU frame time avg %.3f ms, max %.3f ms", report.fps, report.averageCpuMs,
-                     report.maxCpuMs);
+        VP_DEBUG_LOG(L"%.1f fps, CPU frame time avg %.3f ms, max %.3f ms, %zu flakes", report.fps,
+                     report.averageCpuMs, report.maxCpuMs, m_snowfall.flakes().size());
     }
 #endif
     m_pacer.advance(frameEnd);
