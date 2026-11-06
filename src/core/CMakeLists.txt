@@ -17,6 +17,7 @@ add_library(vp_core STATIC
     hresult.cpp
     notices_text.h
     notices_text.cpp
+    pcg32.h
     string_block.h
     string_block.cpp
     test_scene.h
