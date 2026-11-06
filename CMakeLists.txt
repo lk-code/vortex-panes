@@ -62,6 +62,12 @@ add_subdirectory(src/render)
 add_subdirectory(src/settings)
 add_subdirectory(src/app)
 
+# --- Portable folder (cmake --install): license texts and README next to the application -----
+# The application and the Windows App SDK runtime are installed by src/app and cmake/WinAppSdk.cmake.
+install(FILES LICENSE DESTINATION . RENAME LICENSE.txt)
+install(FILES THIRD_PARTY_NOTICES.md DESTINATION . RENAME THIRD_PARTY_NOTICES.txt)
+install(FILES packaging/zip/README.txt DESTINATION .)
+
 # --- Tests --------------------------------------------------------------------
 if(VP_BUILD_TESTS)
     include(FetchContent)
