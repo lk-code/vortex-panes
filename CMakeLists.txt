@@ -54,6 +54,7 @@ endfunction()
 
 # --- Modules ------------------------------------------------------------------
 add_subdirectory(src/core)
+add_subdirectory(src/settings)
 add_subdirectory(src/app)
 
 # --- Tests --------------------------------------------------------------------

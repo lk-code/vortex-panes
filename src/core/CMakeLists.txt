@@ -6,9 +6,18 @@ configure_file(app_info.h.in ${CMAKE_CURRENT_BINARY_DIR}/generated/core/app_info
 add_library(vp_core STATIC
     app_info.h.in
     build_info.h
+    command_line.h
+    command_line.cpp
     geometry.h
     hresult.h
     hresult.cpp
+    string_block.h
+    string_block.cpp
+    tray_menu.h
+    tray_menu.cpp
+    tray_theme.h
+    ui_language.h
+    ui_language.cpp
     unique_resource.h
 )
 target_include_directories(vp_core PUBLIC
