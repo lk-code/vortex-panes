@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  check-version:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          $m = Select-String -Path CMakeLists.txt -Pattern 'project\(\s*VortexPanes\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)'
+          if (-not $m) { throw "Could not read version from CMakeLists.txt" }
+          $cm = $m.Matches[0].Groups[1].Value
+          if ($tag -ne $cm) { throw "Tag v$tag does not match CMake version $cm" }
+          "version=$cm" >> $env:GITHUB_OUTPUT
+
+  build:
+    needs: check-version
+    name: build ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - arch: x86
+            os: windows-latest
+          - arch: x64
+            os: windows-latest
+          - arch: arm64
+            os: windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake --preset ${{ matrix.arch }}
+      - run: cmake --build --preset ${{ matrix.arch }}-debug
+      - run: ctest --preset ${{ matrix.arch }}-debug
+      - run: cmake --build --preset ${{ matrix.arch }}-release
+      - name: Package zip
+        shell: pwsh
+        run: |
+          $name  = "VortexPanes-${{ needs.check-version.outputs.version }}-${{ matrix.arch }}"
+          $stage = "stage/$name"
+          New-Item -ItemType Directory -Force dist | Out-Null
+          cmake --install out/build/${{ matrix.arch }} --config Release --prefix $stage
+          Copy-Item LICENSE $stage/LICENSE.txt
+          Copy-Item THIRD_PARTY_NOTICES.md $stage/THIRD_PARTY_NOTICES.txt
+          Copy-Item packaging/zip/README.txt $stage/README.txt
+          Compress-Archive -Path "$stage/*" -DestinationPath "dist/$name.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.arch }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    needs: [check-version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum *.zip > SHA256SUMS.txt
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" dist/* \
+            --repo "${{ github.repository }}" \
+            --title "VortexPanes ${{ github.ref_name }}" \
+            --generate-notes --verify-tag

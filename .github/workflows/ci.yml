@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86
+            os: windows-latest
+          - arch: x64
+            os: windows-latest
+          - arch: arm64
+            os: windows-11-arm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check translations
+        if: matrix.arch == 'x64'
+        shell: pwsh
+        run: ./tools/Check-Strings.ps1
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.arch }}
+
+      - name: Build (Debug)
+        run: cmake --build --preset ${{ matrix.arch }}-debug
+
+      - name: Test
+        run: ctest --preset ${{ matrix.arch }}-debug
+
+      - name: Build (Release)
+        run: cmake --build --preset ${{ matrix.arch }}-release
+
+      - name: Install
+        run: cmake --install out/build/${{ matrix.arch }} --config Release --prefix stage
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: VortexPanes-${{ matrix.arch }}
+          path: stage/
+          if-no-files-found: error
