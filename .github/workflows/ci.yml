@@ -37,7 +37,7 @@ jobs:
 
       # Windows App SDK and C++/WinRT packages (pinned versions and hashes in cmake/WinAppSdk.cmake)
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: out/nuget
           key: nuget-${{ matrix.arch }}-${{ hashFiles('cmake/WinAppSdk.cmake') }}
