@@ -39,6 +39,10 @@ jobs:
             os: windows-11-arm
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: out/nuget
+          key: nuget-${{ matrix.arch }}-${{ hashFiles('cmake/WinAppSdk.cmake') }}
       - run: cmake --preset ${{ matrix.arch }}
       - run: cmake --build --preset ${{ matrix.arch }}-debug
       - run: ctest --preset ${{ matrix.arch }}-debug
@@ -49,10 +53,9 @@ jobs:
           $name  = "VortexPanes-${{ needs.check-version.outputs.version }}-${{ matrix.arch }}"
           $stage = "stage/$name"
           New-Item -ItemType Directory -Force dist | Out-Null
+          # The install step produces the complete portable folder (application, Windows App SDK
+          # runtime, LICENSE.txt, THIRD_PARTY_NOTICES.txt, README.txt, licenses/).
           cmake --install out/build/${{ matrix.arch }} --config Release --prefix $stage
-          Copy-Item LICENSE $stage/LICENSE.txt
-          Copy-Item THIRD_PARTY_NOTICES.md $stage/THIRD_PARTY_NOTICES.txt
-          Copy-Item packaging/zip/README.txt $stage/README.txt
           Compress-Archive -Path "$stage/*" -DestinationPath "dist/$name.zip"
       - uses: actions/upload-artifact@v4
         with:

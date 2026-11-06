@@ -35,6 +35,13 @@ jobs:
         shell: pwsh
         run: ./tools/Check-Strings.ps1
 
+      # Windows App SDK and C++/WinRT packages (pinned versions and hashes in cmake/WinAppSdk.cmake)
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: out/nuget
+          key: nuget-${{ matrix.arch }}-${{ hashFiles('cmake/WinAppSdk.cmake') }}
+
       - name: Configure
         run: cmake --preset ${{ matrix.arch }}
 
@@ -47,6 +54,7 @@ jobs:
       - name: Build (Release)
         run: cmake --build --preset ${{ matrix.arch }}-release
 
+      # Complete portable folder: application, Windows App SDK runtime, license texts, README
       - name: Install
         run: cmake --install out/build/${{ matrix.arch }} --config Release --prefix stage
 
