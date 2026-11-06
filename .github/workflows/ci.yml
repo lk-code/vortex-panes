@@ -28,7 +28,7 @@ jobs:
             os: windows-11-arm
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check translations
         if: matrix.arch == 'x64'
