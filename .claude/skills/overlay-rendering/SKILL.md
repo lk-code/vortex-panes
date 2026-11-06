@@ -14,7 +14,7 @@ SetLayeredWindowAttributes(h, 0, 255, LWA_ALPHA); // nötig, damit ein Layered-F
 ShowWindow(h, SW_SHOWNOACTIVATE);
 ```
 - `WS_EX_LAYERED | WS_EX_TRANSPARENT` ist das, was **prozessübergreifend** Klicks durchlässt. `WM_NCHITTEST → HTTRANSPARENT` allein reicht nicht.
-- `WS_EX_NOREDIRECTIONBITMAP` sorgt dafür, dass es keine GDI-Oberfläche gibt. Der Inhalt kommt ausschließlich über DirectComposition. **In M1 verifizieren**, dass Click-Through mit dieser Kombination funktioniert. Falls nicht: frag nach, bevor du umbaust.
+- `WS_EX_NOREDIRECTIONBITMAP` sorgt dafür, dass es keine GDI-Oberfläche gibt. Der Inhalt kommt ausschließlich über DirectComposition. **In M1 verifiziert (2026-11-06):** Click-Through funktioniert mit dieser Kombination. `WindowFromPoint` liefert das darunterliegende Fenster, und ein echter Mausklick aktiviert es.
 - Position und Größe kommen aus `MONITORINFO::rcMonitor` (physische Pixel, da PerMonitorV2).
 - Topmost geht gelegentlich verloren, etwa durch die Taskleiste oder Startmenü-Animationen. Deshalb alle 2 s `SetWindowPos(h, HWND_TOPMOST, 0,0,0,0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE)` aufrufen.
 - Die HWNDs der Overlays werden an den `WindowTracker` gemeldet, damit er sie ausfiltert.
@@ -52,7 +52,9 @@ ShowWindow(h, SW_SHOWNOACTIVATE);
 ## Main-Loop und Frame-Pacing
 ```cpp
 HANDLE timer = CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
-// periodisch mit 1/targetFps setzen (SetWaitableTimerEx, negative relative Zeit, Periode in ms)
+// nach jedem Frame neu setzen: FramePacer::advance(now), dann SetWaitableTimerEx mit negativer
+// relativer Zeit = FramePacer::waitIn100ns(deadline, now, qpcFrequency), Periode 0
+// (nicht periodisch: die Periode ist ganzzahlig in ms, 16 ms ergäben 62,5 FPS)
 for (;;) {
     DWORD r = MsgWaitForMultipleObjectsEx(paused ? 0 : 1, &timer, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
     while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) { if (msg.message == WM_QUIT) return; TranslateMessage(&msg); DispatchMessageW(&msg); }

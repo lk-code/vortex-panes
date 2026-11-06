@@ -50,8 +50,8 @@ Alles läuft auf **einem Thread** (UI-Thread). Es gibt keine Synchronisation und
 | Maximiertes Fenster (Oberkante = Monitorrand) | Kein Schnee |
 
 ## App-Shell (Details im Skill `app-shell`)
-- Ein unsichtbares **Message-Only-Fenster** (`HWND_MESSAGE`) empfängt Tray-Nachrichten, `TaskbarCreated` und Hotkeys.
-- `TrayIcon`: `Shell_NotifyIconW` mit Version 4. Kontextmenü **Einstellungen** und **Beenden**.
+- Ein **verstecktes Top-Level-Fenster** (`WS_POPUP`, `WS_EX_TOOLWINDOW`, wird nie angezeigt) empfängt Tray-Nachrichten, `TaskbarCreated`, `WM_SETTINGCHANGE` und Hotkeys. Ein Message-Only-Fenster scheidet aus, weil es keine Broadcasts erhält (siehe „Entscheidungen“).
+- `TrayIcon`: `Shell_NotifyIconW` mit Version 4. Kontextmenü **Einstellungen** und **Beenden**. Ist die Taskleiste beim Start noch nicht bereit, wird das Symbol 30 s lang jede Sekunde erneut angelegt, danach erscheint eine Fehlermeldung.
 - `SettingsWindow` (Modul `src/settings`): Win32-Fenster mit **WinUI 3 über XAML Islands** (Windows App SDK, C++/WinRT). Es wird bei Bedarf erzeugt und beim Schließen zerstört, höchstens eine Instanz. Die WinUI-Laufzeit wird erst beim ersten Öffnen geladen. Inhalt vorerst die Info-Seite. Es ist das einzige Fenster der App mit Taskleisten-Eintrag, und auch das nur, solange es offen ist.
 
 ## Rendering (Kurzfassung, Details im Skill)
@@ -66,4 +66,11 @@ Alles läuft auf **einem Thread** (UI-Thread). Es gibt keine Synchronisation und
 - 2026-11-06: Oberfläche in 7 Sprachen (en, de, es, fr, zh-CN, ja, ko) aus einer gemeinsamen STRINGTABLE für Tray und Einstellungen.
 - 2026-11-06: Wettermodi (Leichter Schnee, Schneesturm, Sonne, Leichter Regen, Regensturm). Regentropfen mit Lichtbrechung über ein wählbares Hintergrundbild (mitgeliefert oder eigenes). Bewusst **keine** Bildschirmaufnahme: Die Effekte bleiben auf Screenshots und Aufnahmen sichtbar, es gibt keine Datenschutzfragen, und es funktioniert per Remote Desktop.
 - 2026-11-06: Git-Workflow: direkt auf `main`, kleine Commits, Push nur nach Freigabe.
+- 2026-11-06 (M1): CMake-Generator **`Visual Studio 18 2026`**. Grund: Lokal und auf beiden CI-Runnern (`windows-latest` = `windows-2025-vs2026`, `windows-11-arm`) ist Visual Studio 2026 18.11 installiert. Folge: Die Presets verlangen CMake ≥ 4.2 (in VS 2026 enthalten), `CMakeLists.txt` bleibt bei `cmake_minimum_required(VERSION 3.25)`.
+- 2026-11-06 (M1): Das Shell-Fenster ist ein **verstecktes Top-Level-Fenster** statt eines Message-Only-Fensters. Grund: Message-Only-Fenster erhalten keine Broadcasts, also weder `TaskbarCreated` (Explorer-Neustart) noch `WM_SETTINGCHANGE` (Taskleisten-Theme). Die zweite Instanz findet die laufende per `FindWindowW(L"VortexPanes.Shell", nullptr)`.
+- 2026-11-06 (M1): `.gitignore` ignoriert nur `/ROADMAP.md` im Wurzelverzeichnis (private Prompt-Sammlung). `docs/ROADMAP.md` wird versioniert.
+- 2026-11-06 (M1): Generische Hilfen ohne `<windows.h>` liegen in `core`: `UniqueResource<Traits>` (RAII für Handles, die Module definieren eigene Traits wie `UniqueHwnd`), `HResultError`/`THROW_IF_FAILED` und der generierte Header `core/app_info.h`. Grund: Die Abhängigkeiten `render → core` und `platform → core` bleiben unverändert, und `settings` erreicht die App-Infos über `core`.
+- 2026-11-06 (M1): Der Frame-Timer wird pro Frame mit relativer Fälligkeit aus einer QPC-Deadline neu gesetzt (`core/frame_pacer`), nicht periodisch. Grund: Die Periode von `SetWaitableTimerEx` ist ganzzahlig in Millisekunden, 16 ms ergäben 62,5 FPS. Fällt die Schleife zurück, werden verpasste Frames verworfen statt nachgeholt.
+- 2026-11-06 (M1): UI-Texte werden mit `FindResourceExW` gezielt in der gewählten Sprache geladen (Fallback en-US), statt sich auf die Sprachwahl von `LoadStringW` zu verlassen. `SetThreadPreferredUILanguages` wird trotzdem gesetzt (für System-UI wie MessageBox-Schaltflächen). Traditionelles Chinesisch (zh-TW, zh-HK, zh-MO, zh-Hant) fällt auf Englisch statt auf vereinfachtes Chinesisch.
+- 2026-11-06 (M1): Das Einbetten der Hintergrundbilder (Glob, RCDATA) folgt in M8 und `THIRD_PARTY_NOTICES` als RCDATA in M2, jeweils dort, wo sie genutzt werden. So bleibt die Exe in M1 klein.
 <!-- Weitere Abweichungen und Begründungen hier eintragen (Datum, Entscheidung, Grund) -->

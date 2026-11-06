@@ -61,10 +61,10 @@ The screen content is not captured for this purpose. As a result, the animation 
 
 Prerequisites:
 
-- Visual Studio 2022 or later, or the Build Tools, with the "Desktop development with C++" workload
-- Windows SDK
-- MSVC build tools for x86, x64 and ARM64
-- CMake 3.25 or later
+- Visual Studio 2026 or the Build Tools for Visual Studio 2026 with the "Desktop development with C++" workload
+- Individual components "MSVC Build Tools for x64/x86 (Latest)" and "MSVC Build Tools for ARM64/ARM64EC (Latest)"
+- Windows SDK (10.0.26100 or later)
+- CMake 4.2 or later; the version included with Visual Studio 2026 is sufficient (available in the Developer PowerShell for Visual Studio)
 
 Build for x64:
 
@@ -111,7 +111,7 @@ Further information (in German): [Architecture](docs/ARCHITECTURE.md), [Roadmap]
 
 ## Contributing
 
-Bug reports and suggestions are welcome via [Issues](https://github.com/lk-code/vortex-panes/issues). Translation improvements can be submitted directly as pull requests for the files in `resources/strings/`.
+Bug reports and suggestions are welcome via [Issues](https://github.com/lk-code/vortex-panes/issues). Translation improvements can be submitted directly as pull requests for the files in `resources/strings/`; `tools/Check-Strings.ps1` verifies that all language files are complete.
 
 ## License
 

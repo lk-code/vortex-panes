@@ -20,8 +20,8 @@ Windows-Desktop-Overlay mit **Wettermodi** (Leichter Schnee, Schneesturm, Sonne 
 Mindestversion: Windows 10 21H2. Alle drei Architekturen sind gleichwertig: Jeder Commit muss für alle drei bauen und die Tests bestehen.
 
 ## Stack (fest)
-- **C++20**, MSVC, **CMake ≥ 3.25**
-- Generator: **Visual Studio** (Multi-Config). Damit braucht es weder eine Entwickler-Eingabeaufforderung noch vcvars, und alle drei Architekturen laufen über `-A`. Der Generator-Name (`Visual Studio 17 2022` oder `Visual Studio 18 2026`) steht **nur an einer Stelle** im versteckten Basis-Preset. In M1 wird geprüft, welche VS-Version lokal und auf den GitHub-Runnern installiert ist.
+- **C++20**, MSVC, **CMake ≥ 3.25** (`cmake_minimum_required`). Die Presets verlangen wegen des VS-2026-Generators CMake ≥ 4.2.
+- Generator: **Visual Studio** (Multi-Config). Damit braucht es weder eine Entwickler-Eingabeaufforderung noch vcvars, und alle drei Architekturen laufen über `-A`. Der Generator-Name steht **nur an einer Stelle** im versteckten Basis-Preset: **`Visual Studio 18 2026`** (in M1 geprüft: VS 2026 18.11 lokal, auf `windows-latest` und auf `windows-11-arm`).
 - Reines **Win32** für Overlay, Tray und Message-Loop. Kein MFC, kein Qt.
 - **Einstellungsfenster: echtes WinUI 3** über **XAML Islands** (`DesktopWindowXamlSource` aus dem Windows App SDK) in einem Win32-Fenster, mit **C++/WinRT**. WinUI wird nur für dieses Fenster genutzt und erst beim ersten Öffnen geladen. Das Overlay bleibt reines D3D11 + DComp. Details im Skill `winui-settings`.
 - **Direct3D 11 + DXGI Flip-Model + DirectComposition** fürs Rendern
@@ -91,7 +91,8 @@ Alle Exes landen in `${CMAKE_BINARY_DIR}/bin/<Config>/` (`CMAKE_RUNTIME_OUTPUT_D
 - Alle Architekturen bauen: `cmake --preset x86 && cmake --build --preset x86-release`, dasselbe für `x64` und `arm64`
 - Start: `out\build\x64\bin\Debug\VortexPanes.exe`
 - ARM64 lässt sich lokal auf einem x64-Rechner nur cross-kompilieren, nicht testen. Getestet wird in CI auf `windows-11-arm`.
-- Voraussetzung lokal: Visual Studio (Build Tools) mit „Desktopentwicklung mit C++“, Windows SDK, **MSVC-Build-Tools für x86/x64 und ARM64**
+- Voraussetzung lokal: Visual Studio 2026 (Build Tools) mit „Desktopentwicklung mit C++“, Windows SDK, **MSVC-Build-Tools für x86/x64 und ARM64** (Komponente `Microsoft.VisualStudio.Component.VC.Tools.ARM64`)
+- `cmake`/`ctest` stammen aus der VS-Installation (`Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin`) und sind in der „Developer PowerShell for VS 2026“ im PATH. `clang-format` liegt unter `VC\Tools\Llvm\x64\bin`.
 
 ## App-Verhalten (Shell)
 - Die App hat **kein Taskleisten-Fenster**. Beim Start erscheint nur ein **Icon im Infobereich** (Tray).

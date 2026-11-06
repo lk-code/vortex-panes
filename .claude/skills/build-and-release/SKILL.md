@@ -11,7 +11,7 @@ description: Use when touching CMakeLists.txt, CMakePresets.json, shader compila
   "version": 6,
   "configurePresets": [
     { "name": "base", "hidden": true,
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/out/build/${presetName}" },
     { "name": "x86",   "inherits": "base", "architecture": { "value": "Win32", "strategy": "set" } },
     { "name": "x64",   "inherits": "base", "architecture": { "value": "x64",   "strategy": "set" } },
@@ -29,7 +29,8 @@ description: Use when touching CMakeLists.txt, CMakePresets.json, shader compila
   ]
 }
 ```
-- In M1 prüfen: Welche VS-Version ist lokal installiert und welche auf `windows-latest` bzw. `windows-11-arm`? Die Liste der installierten Software steht in `actions/runner-images` unter `images/windows/…-Readme.md`. Danach den Generator-Namen im `base`-Preset entsprechend setzen. Er steht nur dort.
+- Geprüft in M1 (2026-11-06): Lokal und auf `windows-latest` (= `windows-2025-vs2026`) sowie `windows-11-arm` ist Visual Studio 2026 18.11 installiert, deshalb `Visual Studio 18 2026`. Der Generator-Name steht nur im `base`-Preset. Ändert sich das Runner-Image, die Liste der installierten Software in `actions/runner-images` unter `images/windows/…-Readme.md` erneut prüfen. Die Presets verlangen CMake ≥ 4.2 (`cmakeMinimumRequired`).
+- Test-Presets erben von einem versteckten `test-base` mit `outputOnFailure` und `execution.noTestsAction = error`, damit eine fehlgeschlagene Test-Erkennung nicht als grün durchgeht.
 
 ## CMakeLists.txt: Pflichtpunkte
 - Hintergrundbilder: `file(GLOB VP_BACKGROUNDS CONFIGURE_DEPENDS resources/backgrounds/*.jpg)` → generierte `.rc`-Einträge (`RCDATA`) und ein generierter Header mit der Bildtabelle. Neue Bilder brauchen nur ein erneutes Konfigurieren, keine Codeänderung.

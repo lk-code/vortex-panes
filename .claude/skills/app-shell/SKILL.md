@@ -6,9 +6,9 @@ description: Use when working on the app shell in src/app – startup without a 
 # App-Shell (Tray, Ressourcen, Lokalisierung)
 
 ## Start
-1. Single-Instance: `CreateMutexW(nullptr, TRUE, L"Local\\VortexPanes.SingleInstance")`. Bei `ERROR_ALREADY_EXISTS` wird der laufenden Instanz eine registrierte Nachricht (`RegisterWindowMessageW(L"VortexPanes.ShowSettings")`) per `PostMessage(HWND_BROADCAST …)` geschickt, damit sie die Einstellungen öffnet. Danach beendet sich die neue Instanz.
-2. Ein **Message-Only-Fenster** wird angelegt (`CreateWindowExW(0, kClass, L"", 0, 0,0,0,0, HWND_MESSAGE, …)`). Es ist unsichtbar, hat keinen Taskleisten-Eintrag und ist der Besitzer des Tray-Icons.
-   - Achtung: `HWND_BROADCAST` erreicht keine Message-Only-Fenster. Für die Single-Instance-Nachricht deshalb das Fenster per `FindWindowExW(HWND_MESSAGE, nullptr, kClass, nullptr)` suchen und direkt `PostMessageW` aufrufen.
+1. Single-Instance: `CreateMutexW(nullptr, TRUE, L"Local\\VortexPanes.SingleInstance")`. Bei `ERROR_ALREADY_EXISTS` sucht die neue Instanz das Shell-Fenster der laufenden per `FindWindowW(L"VortexPanes.Shell", nullptr)`, erlaubt ihr per `AllowSetForegroundWindow` den Vordergrund und schickt ihr die registrierte Nachricht `RegisterWindowMessageW(L"VortexPanes.ShowSettings")` per `PostMessageW`. Danach beendet sie sich.
+2. Ein **verstecktes Top-Level-Fenster** wird angelegt (`CreateWindowExW(WS_EX_TOOLWINDOW, L"VortexPanes.Shell", …, WS_POPUP, 0,0,0,0, nullptr, …)`) und **nie angezeigt**. Es hat keinen Taskleisten- und Alt-Tab-Eintrag und ist der Besitzer des Tray-Icons.
+   - **Kein** Message-Only-Fenster (`HWND_MESSAGE`): Es erhält keine Broadcasts, also weder `TaskbarCreated` noch `WM_SETTINGCHANGE`. Entscheidung vom 2026-11-06 in `docs/ARCHITECTURE.md`.
 3. Tray-Icon hinzufügen, danach die Overlays anlegen. **Nie** `ShowWindow` auf ein normales Top-Level-Fenster ohne `WS_EX_TOOLWINDOW`, solange die Einstellungen nicht offen sind.
 
 ## Tray-Icon
@@ -45,7 +45,7 @@ Das Fenster wird mit **WinUI 3 über XAML Islands** umgesetzt, siehe Skill `winu
   | `ja-JP.rc` | `LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN` |
   | `ko-KR.rc` | `LANG_KOREAN, SUBLANG_KOREAN` |
 - **Encoding:** Alle `.rc`-Dateien sind UTF-8 **mit** `#pragma code_page(65001)` in der ersten Zeile, und `rc.exe` bekommt `/c65001` (CMake: `CMAKE_RC_FLAGS`). Ohne das werden chinesische, japanische und koreanische Zeichen zerstört. Bei CJK-Texten in M1 im laufenden Programm prüfen, dass nichts als `?` oder `□` erscheint.
-- **Sprachwahl:** Windows lädt automatisch die Variante der Anzeigesprache, sonst `en-US`. Zur Sicherheit wird beim Start einmal `SetThreadPreferredUILanguages` mit der Benutzersprache und `en-US` als Fallback gesetzt, damit z. B. `de-AT` sauber auf Deutsch fällt (gleiche Primärsprache). Ein manueller Sprachumschalter kommt später in die Einstellungen.
+- **Sprachwahl:** `core/ui_language` löst die Windows-Anzeigesprachen (`GetUserPreferredUILanguages`) gegen die 7 Sprachen auf: zuerst exakter Treffer, sonst gleiche Primärsprache (`de-AT` → `de-DE`), sonst `en-US`. Traditionelles Chinesisch fällt auf Englisch. `src/app/localization` setzt `SetThreadPreferredUILanguages` (gewählte Sprache, dann `en-US`) und lädt Texte mit `loadString(id)` gezielt per `FindResourceExW` in der gewählten `LANGID` (Fallback `en-US`). Nicht `LoadStringW` verwenden. Ein manueller Sprachumschalter kommt später in die Einstellungen.
 - **Schriften:** Nur Systemschriften. Segoe UI hat kein CJK, Windows ergänzt die Zeichen per Font-Linking (Microsoft YaHei, Yu Gothic UI, Malgun Gothic) automatisch. Für eigene Schriften `CreateFontIndirectW` mit `lfFaceName = L"Segoe UI"`, keine festen CJK-Fonts. Bei DirectWrite übernimmt der System-Font-Fallback.
 - **Layout:** Texte sind je nach Sprache unterschiedlich lang (Französisch und Spanisch bis ca. 40 % länger als Englisch). Controls deshalb breit genug anlegen oder dynamisch per `GetTextExtentPoint32W` bzw. DirectWrite messen. Nichts darf abgeschnitten werden.
 - **Übersetzungen:** Claude Code erstellt sie selbst. Jede Datei bekommt einen Kopfkommentar `// Machine-translated – please review` (außer en-US und de-DE). Kurze, neutrale UI-Sprache im Stil der Windows-Einstellungen (Deutsch: „Einstellungen“, „Beenden“, Sie-Form vermeiden, neutral formulieren).
