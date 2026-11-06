@@ -24,6 +24,8 @@ add_executable(VortexPanes WIN32
 target_include_directories(VortexPanes PRIVATE ${VP_RESOURCE_DIR})
 target_link_libraries(VortexPanes PRIVATE
     vp_settings
+    vp_render
+    vp_platform
     vp_core
     user32
     shell32

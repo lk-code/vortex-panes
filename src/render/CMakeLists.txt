@@ -43,6 +43,12 @@ vp_compile_shader(shape_vs_header shape_vs vs_4_0 g_shapeVS)
 vp_compile_shader(shape_ps_header shape_ps ps_4_0 g_shapePS)
 
 add_library(vp_render STATIC
+    graphics_device.h
+    graphics_device.cpp
+    monitor_overlay.h
+    monitor_overlay.cpp
+    renderer.h
+    renderer.cpp
     shaders.h
     shaders.cpp
     ${VP_SHADER_DIR}/shape_vs.hlsl
@@ -53,5 +59,5 @@ add_library(vp_render STATIC
 # The .hlsl files carry the custom command (MAIN_DEPENDENCY), so MSBuild's own HLSL
 # compiler is not used for them.
 target_include_directories(vp_render PRIVATE ${VP_SHADER_OUT})
-target_link_libraries(vp_render PUBLIC vp_core)
+target_link_libraries(vp_render PUBLIC vp_core PRIVATE d3d11 dxgi dcomp user32)
 vp_target_defaults(vp_render)

@@ -8,11 +8,17 @@ add_library(vp_core STATIC
     build_info.h
     command_line.h
     command_line.cpp
+    fps_counter.h
+    fps_counter.cpp
+    frame_pacer.h
+    frame_pacer.cpp
     geometry.h
     hresult.h
     hresult.cpp
     string_block.h
     string_block.cpp
+    test_scene.h
+    test_scene.cpp
     tray_menu.h
     tray_menu.cpp
     tray_theme.h

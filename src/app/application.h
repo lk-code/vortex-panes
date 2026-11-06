@@ -5,9 +5,15 @@
 #include "win32_handles.h"
 
 #include "core/command_line.h"
+#include "core/fps_counter.h"
+#include "core/frame_pacer.h"
 #include "settings/settings_window.h"
 
+#include <memory>
+
 namespace vp {
+
+class Renderer;
 
 // Owns the hidden shell window, the notification area icon and the overlays, and runs the loop.
 class Application {
@@ -27,11 +33,16 @@ private:
 
     void createShellWindow();
     void addTrayIcon();
+    void createOverlays();
     void onTrayEvent(WPARAM wParam, LPARAM lParam);
     void execute(TrayCommand command);
     void showSettings();
     void requestExit(int exitCode);
-    int messageLoop();
+
+    int mainLoop();
+    void renderFrame();
+    void armFrameTimer(int64_t now);
+    void stopRendering() noexcept;
 
     HINSTANCE m_instance;
     CommandLineOptions m_options;
@@ -42,6 +53,16 @@ private:
     UINT m_taskbarCreatedMessage = 0;
     UINT m_trayAttempts = 0;
     int m_exitCode = 0;
+
+    // Rendering and frame pacing
+    std::unique_ptr<Renderer> m_renderer;
+    UniqueHandle m_frameTimer;
+    int64_t m_ticksPerSecond;
+    int64_t m_startTicks = 0;
+    int64_t m_lastTopmostRefresh = 0;
+    FramePacer m_pacer;
+    FpsCounter m_fps;
+    bool m_rendering = false;
 };
 
 } // namespace vp
