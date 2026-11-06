@@ -8,8 +8,10 @@ add_executable(core_tests
     core_tests/frame_pacer_test.cpp
     core_tests/geometry_test.cpp
     core_tests/hresult_test.cpp
+    core_tests/notices_text_test.cpp
     core_tests/string_block_test.cpp
     core_tests/test_scene_test.cpp
+    core_tests/text_format_test.cpp
     core_tests/tray_menu_test.cpp
     core_tests/tray_theme_test.cpp
     core_tests/ui_language_test.cpp

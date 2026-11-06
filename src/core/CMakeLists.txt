@@ -15,10 +15,14 @@ add_library(vp_core STATIC
     geometry.h
     hresult.h
     hresult.cpp
+    notices_text.h
+    notices_text.cpp
     string_block.h
     string_block.cpp
     test_scene.h
     test_scene.cpp
+    text_format.h
+    text_format.cpp
     tray_menu.h
     tray_menu.cpp
     tray_theme.h
