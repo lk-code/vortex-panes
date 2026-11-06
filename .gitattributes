@@ -1,0 +1,14 @@
+# Normalize line endings in the repository; working copies use the platform default.
+* text=auto
+
+# Files that must keep CRLF line endings
+*.sln eol=crlf
+*.bat eol=crlf
+*.cmd eol=crlf
+
+# Binary files
+*.ico binary
+*.png binary
+*.gif binary
+*.jpg binary
+*.jpeg binary

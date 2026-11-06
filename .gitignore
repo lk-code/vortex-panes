@@ -1,2 +1,101 @@
+# =============================================================================
+# VortexPanes .gitignore
+# Public repository: never commit build output, secrets or personal files.
+# Rules are evaluated top to bottom; later rules win. The secrets section is
+# deliberately last so that nothing can re-include those files.
+# =============================================================================
 
-ROADMAP.md
+# --- Private notes (repository root only; docs/ROADMAP.md is versioned) ------
+/ROADMAP.md
+
+# --- Build output -------------------------------------------------------------
+out/
+build/
+stage/
+dist/
+[Bb]in/
+[Oo]bj/
+x64/
+x86/
+ARM64/
+Win32/
+Debug/
+Release/
+RelWithDebInfo/
+MinSizeRel/
+MinSizRel/
+
+# --- CMake --------------------------------------------------------------------
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+_deps/
+CMakeUserPresets.json
+compile_commands.json
+
+# --- Visual Studio / MSVC -----------------------------------------------------
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+*.ipch
+ipch/
+*.pdb
+*.ilk
+*.obj
+*.lib
+*.exp
+*.idb
+*.iobj
+*.ipdb
+*.tlog
+*.log
+*.aps
+*.res
+
+# --- NuGet / Windows App SDK / C++/WinRT --------------------------------------
+packages/
+*.nupkg
+Generated Files/
+*.pri
+!resources/**/*.pri
+
+# --- MSIX / Store packages ----------------------------------------------------
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.msixupload
+AppPackages/
+
+# --- Generated shader headers (normally in the build tree) --------------------
+shaders/*.h
+
+# --- Python -------------------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+
+# --- Editors and operating system ---------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Claude Code (personal settings only; settings.json and skills/ are shared)
+.claude/settings.local.json
+
+# --- Always versioned ---------------------------------------------------------
+!resources/**/*.ico
+!resources/icons/*.png
+
+# --- Secrets (keep last) ------------------------------------------------------
+# Test certificates must never be committed.
+*.pfx
+.env
+*.local.*
