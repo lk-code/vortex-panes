@@ -12,6 +12,7 @@ add_executable(core_tests
     core_tests/hresult_test.cpp
     core_tests/notices_text_test.cpp
     core_tests/pcg32_test.cpp
+    core_tests/snowfall_test.cpp
     core_tests/string_block_test.cpp
     core_tests/test_scene_test.cpp
     core_tests/text_format_test.cpp

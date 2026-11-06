@@ -1,10 +1,20 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <span>
 #include <vector>
 
 namespace vp {
+
+// Width of the anti-aliased edge of a drawn flake (shaders/flake_vs.hlsl).
+inline constexpr float kFlakeEdgePx = 1.0f;
+
+// Half the side length of the quad drawn for a flake: the radius (at least one pixel) plus the
+// anti-aliased edge. Outside this distance from its center a flake covers no pixel.
+constexpr float flakeExtent(float radius) noexcept {
+    return std::max(radius, 1.0f) + kFlakeEdgePx;
+}
 
 // A falling snowflake in virtual-screen physical pixels.
 struct Flake {
