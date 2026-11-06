@@ -5,6 +5,7 @@ add_executable(core_tests
     core_tests/build_info_test.cpp
     core_tests/command_line_test.cpp
     core_tests/fixed_timestep_test.cpp
+    core_tests/flake_pool_test.cpp
     core_tests/fps_counter_test.cpp
     core_tests/frame_pacer_test.cpp
     core_tests/geometry_test.cpp

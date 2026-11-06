@@ -10,6 +10,8 @@ add_library(vp_core STATIC
     command_line.cpp
     fixed_timestep.h
     fixed_timestep.cpp
+    flake.h
+    flake_pool.cpp
     fps_counter.h
     fps_counter.cpp
     frame_pacer.h
