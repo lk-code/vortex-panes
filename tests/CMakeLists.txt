@@ -19,6 +19,7 @@ add_executable(core_tests
     core_tests/tray_theme_test.cpp
     core_tests/ui_language_test.cpp
     core_tests/unique_resource_test.cpp
+    core_tests/wind_test.cpp
 )
 target_link_libraries(core_tests PRIVATE vp_core GTest::gtest_main)
 vp_target_defaults(core_tests)

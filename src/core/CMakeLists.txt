@@ -34,6 +34,8 @@ add_library(vp_core STATIC
     ui_language.h
     ui_language.cpp
     unique_resource.h
+    wind.h
+    wind.cpp
 )
 target_include_directories(vp_core PUBLIC
     ${PROJECT_SOURCE_DIR}/src
