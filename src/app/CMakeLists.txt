@@ -33,5 +33,7 @@ target_link_libraries(VortexPanes PRIVATE
     comctl32
 )
 vp_target_defaults(VortexPanes)
+# Windows App SDK runtime next to the executable (self-contained) and the merged resource index.
+vp_winappsdk_deploy(VortexPanes)
 
 install(TARGETS VortexPanes RUNTIME DESTINATION .)

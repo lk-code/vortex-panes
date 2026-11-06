@@ -52,6 +52,9 @@ function(vp_target_defaults target)
     set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 endfunction()
 
+# --- Windows App SDK (WinUI 3) and C++/WinRT for the settings window -----------
+include(cmake/WinAppSdk.cmake)
+
 # --- Modules ------------------------------------------------------------------
 add_subdirectory(src/core)
 add_subdirectory(src/platform)

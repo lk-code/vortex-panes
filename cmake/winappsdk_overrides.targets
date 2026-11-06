@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Imported after the Windows App SDK targets (VS_PROJECT_IMPORT, cmake/WinAppSdk.cmake). -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- The self-contained targets compile an inline C# task (RoslynCodeTaskFactory). csc reports
+       CS1668 for LIB entries of optional VC components that are not installed (e.g. ATL for ARM64). -->
+  <PropertyGroup>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);CS1668</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <!-- No XAML compiler is used (the XAML is loaded at run time). Its error handler would add a
+       misleading MSB4044 after every C++ compile error. -->
+  <Target Name="_OnXamlPreCompileError" />
+
+  <!-- CMake generates the C++/WinRT projection, so the .winmd references the packages add are not
+       needed. Removing them avoids MSB3106 from ResolveAssemblyReferences. -->
+  <Target Name="VpRemoveWinmdReferences" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <_VpWinmdReference Include="@(Reference)" Condition="'%(Extension)' == '.winmd'" />
+      <Reference Remove="@(_VpWinmdReference)" />
+    </ItemGroup>
+  </Target>
+</Project>
