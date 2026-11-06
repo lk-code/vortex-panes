@@ -11,6 +11,10 @@ IDI_APP        ICON "@VP_RESOURCE_DIR@/app.ico"
 IDI_TRAY_LIGHT ICON "@VP_RESOURCE_DIR@/tray_light.ico"
 IDI_TRAY_DARK  ICON "@VP_RESOURCE_DIR@/tray_dark.ico"
 
+// --- Embedded data (UTF-8) ----------------------------------------------------
+IDR_SETTINGS_PAGE_XAML  RCDATA "@PROJECT_SOURCE_DIR@/src/settings/settings_page.xaml"
+IDR_THIRD_PARTY_NOTICES RCDATA "@PROJECT_SOURCE_DIR@/THIRD_PARTY_NOTICES.md"
+
 // --- Version information ------------------------------------------------------
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0

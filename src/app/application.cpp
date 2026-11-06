@@ -1,10 +1,13 @@
 #include "application.h"
 
 #include "debug_log.h"
+#include "embedded_data.h"
 #include "localization.h"
 #include "resource.h"
 
 #include "core/app_info.h"
+#include "core/build_info.h"
+#include "core/text_format.h"
 #include "platform/monitors.h"
 #include "render/renderer.h"
 
@@ -41,8 +44,8 @@ int64_t qpcNow() noexcept {
 } // namespace
 
 Application::Application(HINSTANCE instance, CommandLineOptions options)
-    : m_instance(instance), m_options(std::move(options)), m_tray(instance), m_ticksPerSecond(qpcFrequency()),
-      m_pacer(m_ticksPerSecond, kTargetFps), m_fps(m_ticksPerSecond) {}
+    : m_instance(instance), m_options(std::move(options)), m_tray(instance), m_settings(instance, IDI_APP),
+      m_ticksPerSecond(qpcFrequency()), m_pacer(m_ticksPerSecond, kTargetFps), m_fps(m_ticksPerSecond) {}
 
 Application::~Application() = default;
 
@@ -220,7 +223,7 @@ void Application::onTrayEvent(WPARAM wParam, LPARAM lParam) {
     switch (LOWORD(lParam)) {
     case WM_CONTEXTMENU: {
         const POINT anchor{GET_X_LPARAM(wParam), GET_Y_LPARAM(wParam)};
-        const auto menu = buildTrayMenu({.settingsAvailable = SettingsWindow::isAvailable()});
+        const auto menu = buildTrayMenu({.settingsAvailable = m_settings.isAvailable()});
         if (const auto command = TrayIcon::showContextMenu(m_window.get(), anchor, menu)) {
             execute(*command);
         }
@@ -248,16 +251,41 @@ void Application::execute(TrayCommand command) {
 }
 
 void Application::showSettings() {
-    if (SettingsWindow::isAvailable()) {
-        m_settings.show();
+    if (!m_settings.isAvailable()) {
+        return;
     }
+    // WinUI is loaded on the first call; the overlay keeps running on the same thread.
+    if (!m_settings.show(settingsContent())) {
+        const std::wstring message = loadString(IDS_ERROR_SETTINGS);
+        ::MessageBoxW(nullptr, message.c_str(), kAppName, MB_OK | MB_ICONERROR);
+    }
+}
+
+SettingsContent Application::settingsContent() const {
+    SettingsContent content;
+    content.windowTitle = loadString(IDS_SETTINGS_TITLE);
+    content.appName = kAppName;
+    content.versionLine = formatText(loadString(IDS_ABOUT_VERSION), {kVersion, architectureName()});
+    content.developerLabel = loadString(IDS_ABOUT_DEVELOPER);
+    content.developerName = kDeveloper;
+    content.websiteLabel = loadString(IDS_ABOUT_WEBSITE);
+    content.websiteUrl = kWebsite;
+    content.licensesLabel = loadString(IDS_ABOUT_LICENSES);
+    content.licensesLinkText = loadString(IDS_ABOUT_LICENSES_SHOW);
+    content.licensesLinkName = loadString(IDS_ABOUT_LICENSES_SHOW_NAME);
+    content.closeButtonText = loadString(IDS_DIALOG_CLOSE);
+    content.appIconName = loadString(IDS_ABOUT_ICON_NAME);
+    content.pageXaml = embeddedData(IDR_SETTINGS_PAGE_XAML);
+    content.noticesMarkdown = embeddedData(IDR_THIRD_PARTY_NOTICES);
+    return content;
 }
 
 void Application::requestExit(int exitCode) {
     VP_DEBUG_LOG(L"exit requested (code %d)", exitCode);
     m_exitCode = exitCode;
     stopRendering();
-    m_renderer.reset(); // destroys the overlay windows
+    m_settings.shutdown(); // closes the window and shuts WinUI down while messages still flow
+    m_renderer.reset();    // destroys the overlay windows
     m_tray.remove();
     if (m_window) {
         ::KillTimer(m_window.get(), kTrayRetryTimer);
@@ -295,6 +323,10 @@ int Application::mainLoop() {
         while (::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
             if (msg.message == WM_QUIT) {
                 return static_cast<int>(msg.wParam);
+            }
+            // Keyboard handling of the settings window (Tab, arrow keys, access keys).
+            if (m_settings.preTranslateMessage(msg)) {
+                continue;
             }
             ::TranslateMessage(&msg);
             ::DispatchMessageW(&msg);

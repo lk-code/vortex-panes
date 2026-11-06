@@ -37,6 +37,7 @@ private:
     void onTrayEvent(WPARAM wParam, LPARAM lParam);
     void execute(TrayCommand command);
     void showSettings();
+    SettingsContent settingsContent() const;
     void requestExit(int exitCode);
 
     int mainLoop();

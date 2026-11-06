@@ -23,7 +23,7 @@ struct TrayMenuItem {
 };
 
 struct TrayMenuState {
-    bool settingsAvailable = false; // the settings window arrives with M2
+    bool settingsAvailable = false; // false if the settings window cannot be opened (WinUI failed)
 };
 
 // Layout of the notification area context menu, top to bottom.

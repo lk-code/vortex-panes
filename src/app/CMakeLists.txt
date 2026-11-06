@@ -9,6 +9,8 @@ add_executable(VortexPanes WIN32
     application.cpp
     debug_log.h
     debug_log.cpp
+    embedded_data.h
+    embedded_data.cpp
     localization.h
     localization.cpp
     single_instance.h
