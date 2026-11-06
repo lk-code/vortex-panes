@@ -8,6 +8,8 @@ add_library(vp_core STATIC
     build_info.h
     command_line.h
     command_line.cpp
+    fixed_timestep.h
+    fixed_timestep.cpp
     fps_counter.h
     fps_counter.cpp
     frame_pacer.h
