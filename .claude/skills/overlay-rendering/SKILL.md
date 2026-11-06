@@ -31,13 +31,13 @@ ShowWindow(h, SW_SHOWNOACTIVATE);
 
 ## Shader (`shaders/`, Build-Zeit via `fxc`, siehe Skill `build-and-release`)
 - Shader Model **4.0** (`vs_4_0`/`ps_4_0`), damit auch Feature Level 10_x und WARP funktionieren. Mehr wird nicht benötigt.
-- **Konstantenpuffer** pro Frame/Monitor: `float2 originPx` (Monitor-Left/Top), `float2 invSizePx` (1/Breite, 1/Höhe)
+- **Konstantenpuffer** pro Frame/Monitor (32 Byte): `float2 originPx` (Monitor-Left/Top), `float2 invSizePx` (1/Breite, 1/Höhe), `float opacity` (globaler Deckkraftfaktor: Einblenden beim Start, später Modusübergänge)
 - Pixel → NDC im VS: `ndc = float2((p.x - origin.x) * invSize.x * 2 - 1, 1 - (p.y - origin.y) * invSize.y * 2)`
 - **Flocken** (`flake_vs.hlsl`, `flake_ps.hlsl`):
   - Vertexdaten: Quad-Ecken (−1..1) über `SV_VertexID` (0..3, Triangle-Strip). Es gibt keinen Vertexpuffer.
-  - Instanzdaten (Input-Slot 0, `D3D11_INPUT_PER_INSTANCE_DATA`): `float2 pos; float radius; float alpha;`
-  - Der PS berechnet die Distanz zum Zentrum, `a = alpha * (1 - smoothstep(0.6, 1.0, d))` und gibt `float4(a, a, a, a)` aus. Das ist bereits **premultiplied**.
-  - Draw: `DrawInstanced(4, visibleCount, 0, 0)`
+  - Instanzdaten (Input-Slot 0, `D3D11_INPUT_PER_INSTANCE_DATA`, Semantik `FLAKE`): `float2 pos; float radius; float alpha;` (`core/flake_instances.h`: `FlakeInstance`)
+  - Kantenglättung **in Pixeleinheiten**: Das Quad reicht `max(radius, 1) + 1` px um das Zentrum (`flakeExtent()` in `core/flake.h`, gleiche Grenze für Culling und Simulation). Der PS rechnet `a = alpha * (1 - smoothstep(inner, outer, dPx))` mit `inner = max(0.6 * r - 0.5, 0)` und `outer = r + 0.5`, die weiche Kante ist also mindestens etwa 1 px breit. Radien unter 1 px werden mit 1 px gezeichnet und die Alpha mit `r²` skaliert. So flackern kleine Flocken bei Sub-Pixel-Bewegung nicht. Ausgabe `float4(a, a, a, a)`, bereits **premultiplied**.
+  - Draw: `DrawInstanced(4, visibleCount, 0, 0)`, nur bei `visibleCount > 0`
 - **Schneedecken** (`cap_vs.hlsl`, `cap_ps.hlsl`):
   - Vertexdaten: `float2 pos; float4 color;` (premultiplied). Triangle-List, dynamischer Vertexpuffer.
   - Pro sichtbarem Segment und Spalte zwei Dreiecke zwischen Fensterkante und `top - height`. Das Profil wird per Catmull-Rom auf halbe Spaltenbreite geglättet.
@@ -46,7 +46,7 @@ ShowWindow(h, SW_SHOWNOACTIVATE);
 - **Blend-State:** `SrcBlend = ONE`, `DestBlend = INV_SRC_ALPHA` (für Farbe und Alpha gleich). Kein Depth, kein Culling.
 
 ## Puffer
-- Instanzpuffer: `D3D11_USAGE_DYNAMIC`, `CPU_ACCESS_WRITE`, Kapazität = maximale Flockenanzahl. Pro Monitor `Map(WRITE_DISCARD)`, nur Flocken mit Bounds-Schnitt hineinschreiben.
+- Instanzpuffer: `D3D11_USAGE_DYNAMIC`, `CPU_ACCESS_WRITE`, Kapazität = maximale Flockenanzahl. Pro Monitor `Map(WRITE_DISCARD)`, nur Flocken mit Bounds-Schnitt hineinschreiben (`collectVisibleFlakes` schreibt direkt in den gemappten Puffer, ohne Zwischenkopie).
 - Cap-Vertexpuffer: dynamisch, Kapazität großzügig (z. B. 256k Vertices). Ist sie überschritten, Segmente kappen und im Debug-Log warnen. Niemals pro Frame neu allokieren.
 
 ## Main-Loop und Frame-Pacing

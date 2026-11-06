@@ -86,7 +86,7 @@ Running the application from the repository root:
 out\build\x64\bin\Release\VortexPanes.exe
 ```
 
-The application runs in the background; it is closed via *Exit* in the context menu of its notification area icon. Debug builds (`out\build\x64\bin\Debug\VortexPanes.exe`, built with `cmake --build --preset x64-debug`) additionally accept `--lang <tag>` (for example `--lang ja-JP`) to override the user interface language and `--warp` to force the WARP software renderer. They write the frame rate and frame time via `OutputDebugString`, which can be viewed with a debugger or DebugView.
+The application runs in the background; it is closed via *Exit* in the context menu of its notification area icon. Debug builds (`out\build\x64\bin\Debug\VortexPanes.exe`, built with `cmake --build --preset x64-debug`) additionally accept `--lang <tag>` (for example `--lang ja-JP`) to override the user interface language and `--warp` to force the WARP software renderer. They write the frame rate, the frame time and the number of snowflakes via `OutputDebugString`, which can be viewed with a debugger or DebugView.
 
 Running the tests:
 
