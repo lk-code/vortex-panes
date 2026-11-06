@@ -25,14 +25,14 @@ description: Use when working on the app shell in src/app – startup without a 
 - **DPI:** Icons über `LoadIconMetric(hInst, MAKEINTRESOURCEW(id), LIM_SMALL, &hIcon)` laden, nicht über `LoadIcon`. Bei DPI-Wechsel neu laden.
 
 ## Einstellungsfenster
-Das Fenster wird mit **WinUI 3 über XAML Islands** umgesetzt, siehe Skill `winui-settings`. Die App-Shell ruft nur `SettingsWindow::show()` auf. Ist das Fenster schon offen, wird es in den Vordergrund geholt.
+Das Fenster wird mit **WinUI 3 über XAML Islands** umgesetzt, siehe Skill `winui-settings`. Die App-Shell ruft nur `SettingsWindow::show(content)` auf (Texte aus der STRINGTABLE und eingebettete Daten als `SettingsContent`). Ist das Fenster schon offen, wird es in den Vordergrund geholt. Die Main-Loop reicht jede Nachricht vor `TranslateMessage` an `SettingsWindow::preTranslateMessage` weiter, und „Beenden“ ruft `SettingsWindow::shutdown()` auf. Schlägt die WinUI-Initialisierung fehl, erscheint eine Fehlermeldung (`IDS_ERROR_SETTINGS`), und der Menüeintrag ist danach ausgegraut.
 
 ## Ressourcen und Lokalisierung
 - `app.rc.in` → `configure_file` → `app.rc`. Inhalt:
   - `IDI_APP ICON "app.ico"` als **erstes** Icon, damit es das Exe-Icon im Explorer wird. Dazu `IDI_TRAY_LIGHT`, `IDI_TRAY_DARK`.
   - `VERSIONINFO`: FileVersion und ProductVersion aus `PROJECT_VERSION`, CompanyName = `VP_DEVELOPER`, ProductName/FileDescription = `VP_APP_NAME`, LegalCopyright „© 2026 lk-code, MIT License“
   - Das Einstellungsfenster (WinUI) hat **ein** XAML-Layout ohne Texte. Alle Texte setzt der Code zur Laufzeit aus der STRINGTABLE, so gibt es eine einzige Übersetzungsquelle für Tray und Einstellungen. Keine `.resw`-Dateien.
-  - `THIRD_PARTY_NOTICES` als `RCDATA`
+  - `THIRD_PARTY_NOTICES.md` und das XAML der Einstellungsseite (`src/settings/settings_page.xaml`) als `RCDATA` (`IDR_THIRD_PARTY_NOTICES`, `IDR_SETTINGS_PAGE_XAML`), gelesen über `app/embedded_data`
   - `#include` der Sprachdateien aus `resources/strings/`
 - **Sprachdateien:** je Sprache eine Datei `resources/strings/<tag>.rc` mit genau einem `STRINGTABLE`-Block und passendem `LANGUAGE`:
   | Datei | LANGUAGE |

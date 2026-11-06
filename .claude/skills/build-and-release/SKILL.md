@@ -34,7 +34,8 @@ description: Use when touching CMakeLists.txt, CMakePresets.json, shader compila
 
 ## CMakeLists.txt: Pflichtpunkte
 - Hintergrundbilder: `file(GLOB VP_BACKGROUNDS CONFIGURE_DEPENDS resources/backgrounds/*.jpg)` → generierte `.rc`-Einträge (`RCDATA`) und ein generierter Header mit der Bildtabelle. Neue Bilder brauchen nur ein erneutes Konfigurieren, keine Codeänderung.
-- `install()`-Regeln für die Exe **und** alle Laufzeitdateien (WinAppSDK-DLLs, `.pri`, ggf. `.winmd`), damit `cmake --install` einen lauffähigen Ordner erzeugt. CI und Release nutzen ausschließlich diesen Weg, nicht `bin/Release` direkt.
+- `install()`-Regeln für die Exe **und** alle Laufzeitdateien (WinAppSDK-DLLs, `.mui`, `.pri` inkl. der gemergten `VortexPanes.pri`, ohne `.winmd`) sowie `LICENSE.txt`, `THIRD_PARTY_NOTICES.txt`, `README.txt` und `licenses/` (Microsoft-Lizenz und Notices). `cmake --install` erzeugt damit den kompletten Inhalt der Portable-ZIP. CI und Release nutzen ausschließlich diesen Weg, nicht `bin/Release` direkt.
+- Windows App SDK und C++/WinRT: `include(cmake/WinAppSdk.cmake)` vor den Modulen (Details im Skill `winui-settings`). Die Pakete landen in `out/nuget`; die CI cacht den Ordner per `actions/cache` mit einem Schlüssel pro Architektur aus dem Hash von `cmake/WinAppSdk.cmake`.
 - `cmake_minimum_required(VERSION 3.25)`, `project(VortexPanes VERSION 0.1.0 LANGUAGES CXX)`
 - `set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")` **vor** dem Anlegen aller Targets und vor `FetchContent_MakeAvailable(googletest)`
 - `set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)`, `set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)`
@@ -68,7 +69,7 @@ find_program(FXC_EXECUTABLE fxc
 ## Release (`.github/workflows/release.yml`)
 - Trigger: Push eines Tags `v*.*.*`
 - Job 1 prüft, ob der Tag zur `project(VERSION)` passt. Sonst schlägt er fehl.
-- Job 2 baut in der Matrix wie CI und testet. Danach erzeugt `cmake --install out/build/<arch> --config Release --prefix stage/app` den vollständigen App-Ordner (Exe plus WinAppSDK-Laufzeit für Self-Contained, ohne `.pdb`, `.lib` und `.exp`). Daraus wird pro Architektur eine **unsignierte Portable-ZIP** `VortexPanes-<version>-<arch>.zip` mit dem App-Ordner, `LICENSE.txt`, `THIRD_PARTY_NOTICES.txt` und `README.txt` (aus `packaging/zip/README.txt`, Englisch, mit Start, SmartScreen-Hinweis, Deinstallation und Architekturwahl).
+- Job 2 baut in der Matrix wie CI und testet. Danach erzeugt `cmake --install out/build/<arch> --config Release --prefix stage/<name>` den vollständigen App-Ordner (Exe, WinAppSDK-Laufzeit für Self-Contained, `LICENSE.txt`, `THIRD_PARTY_NOTICES.txt`, `README.txt` aus `packaging/zip/README.txt`, `licenses/`; ohne `.pdb`, `.lib` und `.exp`). Daraus wird pro Architektur eine **unsignierte Portable-ZIP** `VortexPanes-<version>-<arch>.zip`. Die README.txt (Englisch) enthält Voraussetzungen, Start, SmartScreen-Hinweis, Deinstallation, Architekturwahl und den Hinweis auf die Microsoft-Lizenz der WinAppSDK-Dateien.
 - Job 3 lädt alle Artifacts herunter, erzeugt `SHA256SUMS.txt` und ruft `gh release create <tag> --generate-notes --verify-tag <files>` auf. Dafür braucht der Job `permissions: contents: write`, der Token ist `GITHUB_TOKEN`. Keine Drittanbieter-Actions.
 - Die ZIPs gibt es **zusätzlich** zum Store-Paket aus M10, nicht als Ersatz. Das Store-Bundle hängt als eigene Datei am selben Release.
 - Keine Code-Signierung (Nicht-Ziel v1)
@@ -101,7 +102,8 @@ find_program(FXC_EXECUTABLE fxc
   - `Identity Name`, `Publisher`, `PublisherDisplayName` aus Partner Center. Sie sind nicht geheim und dürfen ins öffentliche Repo, als CMake-Cache-Variablen mit Platzhaltern, bis die echten Werte da sind.
   - `Version` = `PROJECT_VERSION` + `.0` (MSIX braucht 4 Stellen, die letzte muss für den Store 0 sein)
   - `ProcessorArchitecture` = x86 / x64 / arm64
-  - `TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19044.0"`
+  - `TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0"` (Windows 11 21H2, Entscheidung M2)
+  - Framework-abhängig (`VP_WINAPPSDK_SELF_CONTAINED=OFF`): `PackageDependency` auf die Windows App Runtime 2.x passend zu `VP_WINAPPSDK_VERSION`
   - `<rescap:Capability Name="runFullTrust"/>`
   - `Application EntryPoint="Windows.FullTrustApplication" Executable="VortexPanes.exe"`
   - Logos (`packaging/Assets/`: Square44x44, Square150x150, Wide310x150, StoreLogo, inkl. `targetsize`-Varianten). Sie werden von `tools/make_icons.py` erzeugt, das Skript dafür erweitern.

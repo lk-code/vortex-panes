@@ -17,13 +17,13 @@ Windows-Desktop-Overlay mit **Wettermodi** (Leichter Schnee, Schneesturm, Sonne 
 | x64 | `x64` | `windows-latest` | ja |
 | ARM64 | `ARM64` | `windows-11-arm` | ja (nativ) |
 
-Mindestversion: Windows 10 21H2. Alle drei Architekturen sind gleichwertig: Jeder Commit muss für alle drei bauen und die Tests bestehen.
+Mindestversion: **Windows 11 21H2 (Build 22000)**, Entscheidung in M2. Ziel ist, dass die App auf einem frisch eingerichteten Windows 11 ohne Updates und ohne Nachinstallation läuft. Alle drei Architekturen sind gleichwertig: Jeder Commit muss für alle drei bauen und die Tests bestehen.
 
 ## Stack (fest)
 - **C++20**, MSVC, **CMake ≥ 3.25** (`cmake_minimum_required`). Die Presets verlangen wegen des VS-2026-Generators CMake ≥ 4.2.
 - Generator: **Visual Studio** (Multi-Config). Damit braucht es weder eine Entwickler-Eingabeaufforderung noch vcvars, und alle drei Architekturen laufen über `-A`. Der Generator-Name steht **nur an einer Stelle** im versteckten Basis-Preset: **`Visual Studio 18 2026`** (in M1 geprüft: VS 2026 18.11 lokal, auf `windows-latest` und auf `windows-11-arm`).
 - Reines **Win32** für Overlay, Tray und Message-Loop. Kein MFC, kein Qt.
-- **Einstellungsfenster: echtes WinUI 3** über **XAML Islands** (`DesktopWindowXamlSource` aus dem Windows App SDK) in einem Win32-Fenster, mit **C++/WinRT**. WinUI wird nur für dieses Fenster genutzt und erst beim ersten Öffnen geladen. Das Overlay bleibt reines D3D11 + DComp. Details im Skill `winui-settings`.
+- **Einstellungsfenster: echtes WinUI 3** über **XAML Islands** (`DesktopWindowXamlSource` aus dem Windows App SDK) in einem Win32-Fenster, mit **C++/WinRT**. WinUI wird nur für dieses Fenster genutzt und erst beim ersten Öffnen geladen. Das Overlay bleibt reines D3D11 + DComp. Eingebunden über `cmake/WinAppSdk.cmake` (NuGet-Pakete mit fester Version und SHA256, kein MSBuild-Projekt). Details im Skill `winui-settings`.
 - **Direct3D 11 + DXGI Flip-Model + DirectComposition** fürs Rendern
 - HLSL-Shader werden **zur Build-Zeit** mit `fxc` aus dem Windows SDK kompiliert und als Header mit Bytecode erzeugt (siehe Skill `overlay-rendering`)
 - COM über `Microsoft::WRL::ComPtr`
@@ -32,7 +32,7 @@ Mindestversion: Windows 10 21H2. Alle drei Architekturen sind gleichwertig: Jede
 - Unicode (`UNICODE`, `_UNICODE`), `WIN32_LEAN_AND_MEAN`, `NOMINMAX`
 - Tests: **GoogleTest** über CMake `FetchContent` mit fester Version (Tag oder Commit-Hash)
 - Settings als **INI** über `GetPrivateProfileStringW`/`WritePrivateProfileStringW`
-- **Freigegebene Abhängigkeiten:** Windows SDK, GoogleTest (BSD-3-Clause, nur für Tests, wird nicht ausgeliefert), **Windows App SDK** (`Microsoft.WindowsAppSDK` samt den von ihm benötigten Paketen) und **C++/WinRT** (`Microsoft.Windows.CppWinRT`), in CI nur offizielle `actions/*`-Actions. Die Lizenzen von Windows App SDK und C++/WinRT werden in M2 trotzdem geprüft und dokumentiert, auch die der ausgelieferten Binärdateien. Für alles andere vorher fragen.
+- **Freigegebene Abhängigkeiten:** Windows SDK, GoogleTest (BSD-3-Clause, nur für Tests, wird nicht ausgeliefert), **Windows App SDK** (`Microsoft.WindowsAppSDK` samt den von ihm benötigten Paketen) und **C++/WinRT** (`Microsoft.Windows.CppWinRT`), in CI nur offizielle `actions/*`-Actions. Die Lizenzen von Windows App SDK und C++/WinRT sind in M2 geprüft und in `THIRD_PARTY_NOTICES.md` dokumentiert. Verwendet werden nur die WinUI-Komponenten des Windows App SDK (nicht das Metapaket). Ihre Binärdateien stehen unter den Microsoft Software License Terms und liegen mit Lizenz- und Notice-Dateien im Ordner `licenses/` der ZIP. Für alles andere vorher fragen.
 
 ## Lizenzen von Fremdabhängigkeiten (Pflicht)
 Das Projekt steht unter MIT und wird öffentlich auf GitHub sowie im Microsoft Store vertrieben. Bevor du **irgendeine** Fremdabhängigkeit vorschlägst (Bibliothek, Header-only-Code, kopierte Snippets, Fonts, Grafiken, Sounds, Actions von Drittanbietern), gilt:
@@ -61,6 +61,7 @@ LICENSE  THIRD_PARTY_NOTICES.md  README.md  CLAUDE.md  .gitignore  .gitattribute
   workflows/ci.yml        – Build und Test für alle drei Architekturen bei Push/PR
   workflows/release.yml   – bei Tag v*: Portable-ZIP pro Architektur + SHA256 an GitHub Release
   dependabot.yml          – Updates für GitHub Actions
+cmake/         – WinAppSdk.cmake (Windows App SDK + C++/WinRT: Download, Projektion, Deployment), priconfig.xml, winappsdk_overrides.targets
 src/
   core/        – vp_core (static lib): Simulation, plattformunabhängig, KEIN <windows.h>
   platform/    – vp_platform (static lib): Fenster-Tracking, Verdeckung, Monitore, Cursor, Vollbild
@@ -131,7 +132,7 @@ Alle Exes landen in `${CMAKE_BINARY_DIR}/bin/<Config>/` (`CMAKE_RUNTIME_OUTPUT_D
 - Modus Sonne nach dem Abtauen: nur noch Sonnenstrahlen mit 15 FPS, **< 0,3 % CPU**
 - Pausiert: **0 % CPU**, die Loop wartet nur auf Nachrichten
 - Release-Exe: < 1 MB pro Architektur. Die Portable-ZIP ist durch die WinAppSDK-Laufzeit größer (self-contained), das ist akzeptiert. Das MSIX bleibt klein (framework-abhängig).
-- Einstellungsfenster nie geöffnet: Es wird keine WinUI-DLL geladen (Delay-Load, prüfen mit Process Explorer oder `listdlls`). Fenster offen: < 150 MB RAM sind ok.
+- Einstellungsfenster nie geöffnet: Es wird keine WinUI-DLL geladen (keine statischen Importe, Auto-Initializer aus, Initialisierung erst beim ersten Öffnen; prüfen mit Process Explorer, `listdlls` oder `tasklist /m`). Fenster offen: < 150 MB RAM sind ok.
 
 ## Nicht-Ziele (v1)
 - Kein macOS/Linux, kein ARM64EC

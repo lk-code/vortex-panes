@@ -21,7 +21,7 @@ VortexPanes is a weather animation for the Windows desktop. Snow and rain fall a
 
 ## System Requirements
 
-- Windows 10 version 21H2 or later, Windows 11
+- Windows 11 version 21H2 or later; no additional runtime has to be installed
 - Graphics adapter with Direct3D 10 or later (otherwise software rendering via WARP)
 - x64, ARM64 or x86 processor
 
@@ -35,7 +35,7 @@ The latest version is available on the [Releases](https://github.com/lk-code/vor
 | `VortexPanes-<version>-arm64.zip` | Windows devices with ARM processors, e.g. Snapdragon |
 | `VortexPanes-<version>-x86.zip` | 32-bit installations of Windows |
 
-Extract the entire archive and run `VortexPanes.exe`. No installation is required. The folder contains the runtime libraries for the settings window, so all files must be kept together.
+Extract the entire archive and run `VortexPanes.exe`. No installation is required. The folder contains the runtime libraries of the Windows App SDK for the settings window, so all files must be kept together. These libraries are distributed under the Microsoft license terms included in the `licenses` folder.
 
 The executables are not code-signed. Windows SmartScreen therefore displays a notice on first launch, which can be confirmed via "More info" and "Run anyway". The checksums of all archives are provided in `SHA256SUMS.txt` with each release.
 
@@ -65,6 +65,7 @@ Prerequisites:
 - Individual components "MSVC Build Tools for x64/x86 (Latest)" and "MSVC Build Tools for ARM64/ARM64EC (Latest)"
 - Windows SDK (10.0.26100 or later)
 - CMake 4.2 or later; the version included with Visual Studio 2026 is sufficient (available in the Developer PowerShell for Visual Studio)
+- Internet access for the first configuration: CMake downloads the Windows App SDK and C++/WinRT packages from nuget.org (pinned versions, verified by SHA256) into `out\nuget`, which all presets share
 
 Build for x64:
 
@@ -73,7 +74,11 @@ cmake --preset x64
 cmake --build --preset x64-release
 ```
 
-The application is then located in `out\build\x64\bin\Release\`. For the other architectures, replace `x64` with `x86` or `arm64`.
+The application is then located in `out\build\x64\bin\Release\`. For the other architectures, replace `x64` with `x86` or `arm64`. The complete portable folder, as contained in the release archives, is created with:
+
+```bat
+cmake --install out\build\x64 --config Release --prefix stage\x64
+```
 
 Running the application from the repository root:
 
@@ -111,9 +116,10 @@ The release workflow creates an archive for each architecture and publishes it t
 | `src/core` | Simulation of snow, rain and droplets; platform-independent and covered by unit tests |
 | `src/platform` | Detection of windows, taskbar, monitors and full-screen applications (Win32) |
 | `src/render` | Rendering with Direct3D 11 and DirectComposition, one overlay per monitor |
-| `src/settings` | Settings window based on WinUI 3 |
+| `src/settings` | Settings window based on WinUI 3 (XAML Islands) |
 | `src/app` | Application startup, main loop, notification area icon and configuration |
 | `resources` | Icons, background images and language files |
+| `cmake` | Integration of the Windows App SDK and C++/WinRT into the build |
 
 Further information (in German): [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md)
 
@@ -125,4 +131,4 @@ Bug reports and suggestions are welcome via [Issues](https://github.com/lk-code/
 
 Released under the [MIT License](LICENSE). Copyright (c) 2026 lk-code.
 
-Notices for third-party components: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+Notices for third-party components: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The release archives contain components of the Microsoft Windows App SDK, which are subject to the Microsoft Software License Terms.
