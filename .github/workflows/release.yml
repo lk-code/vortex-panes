@@ -39,7 +39,7 @@ jobs:
             os: windows-11-arm
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: out/nuget
           key: nuget-${{ matrix.arch }}-${{ hashFiles('cmake/WinAppSdk.cmake') }}
