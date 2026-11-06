@@ -57,7 +57,7 @@ jobs:
           # runtime, LICENSE.txt, THIRD_PARTY_NOTICES.txt, README.txt, licenses/).
           cmake --install out/build/${{ matrix.arch }} --config Release --prefix $stage
           Compress-Archive -Path "$stage/*" -DestinationPath "dist/$name.zip"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.arch }}
           path: dist/*.zip
