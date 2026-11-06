@@ -75,6 +75,14 @@ cmake --build --preset x64-release
 
 The application is then located in `out\build\x64\bin\Release\`. For the other architectures, replace `x64` with `x86` or `arm64`.
 
+Running the application from the repository root:
+
+```bat
+out\build\x64\bin\Release\VortexPanes.exe
+```
+
+The application runs in the background; it is closed via *Exit* in the context menu of its notification area icon. Debug builds (`out\build\x64\bin\Debug\VortexPanes.exe`, built with `cmake --build --preset x64-debug`) additionally accept `--lang <tag>` (for example `--lang ja-JP`) to override the user interface language and `--warp` to force the WARP software renderer. They write the frame rate and frame time via `OutputDebugString`, which can be viewed with a debugger or DebugView.
+
 Running the tests:
 
 ```bat
