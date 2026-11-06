@@ -1,0 +1,15 @@
+#pragma code_page(65001)
+// Japanese (Japan)
+// Machine-translated – please review
+
+LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "設定"
+    IDS_MENU_EXIT           "終了"
+    IDS_ERROR_STARTUP       "VortexPanes を起動できませんでした。"
+    IDS_ERROR_GRAPHICS      "グラフィックス出力を初期化できませんでした。VortexPanes を終了します。"
+    IDS_ERROR_TRAY_ICON     "通知領域のアイコンを作成できませんでした。VortexPanes を終了します。"
+END

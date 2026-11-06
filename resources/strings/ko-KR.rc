@@ -1,0 +1,15 @@
+#pragma code_page(65001)
+// Korean (Korea)
+// Machine-translated – please review
+
+LANGUAGE LANG_KOREAN, SUBLANG_KOREAN
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "설정"
+    IDS_MENU_EXIT           "종료"
+    IDS_ERROR_STARTUP       "VortexPanes를 시작할 수 없습니다."
+    IDS_ERROR_GRAPHICS      "그래픽 출력을 초기화할 수 없습니다. VortexPanes를 종료합니다."
+    IDS_ERROR_TRAY_ICON     "알림 영역 아이콘을 만들 수 없습니다. VortexPanes를 종료합니다."
+END

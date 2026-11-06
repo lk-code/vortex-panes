@@ -1,0 +1,15 @@
+#pragma code_page(65001)
+// French (France)
+// Machine-translated – please review
+
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "Paramètres"
+    IDS_MENU_EXIT           "Quitter"
+    IDS_ERROR_STARTUP       "Impossible de démarrer VortexPanes."
+    IDS_ERROR_GRAPHICS      "Impossible d’initialiser la sortie graphique. VortexPanes va se fermer."
+    IDS_ERROR_TRAY_ICON     "Impossible de créer l’icône dans la zone de notification. VortexPanes va se fermer."
+END

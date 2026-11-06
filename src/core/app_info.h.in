@@ -1,0 +1,12 @@
+// Generated from src/core/app_info.h.in by CMake (configure_file). Do not edit.
+#pragma once
+
+namespace vp {
+
+inline constexpr const wchar_t* kAppName = L"@VP_APP_NAME@";
+inline constexpr const wchar_t* kDeveloper = L"@VP_DEVELOPER@";
+inline constexpr const wchar_t* kWebsite = L"@VP_WEBSITE@";
+inline constexpr const wchar_t* kRepository = L"@VP_REPOSITORY@";
+inline constexpr const wchar_t* kVersion = L"@PROJECT_VERSION@";
+
+} // namespace vp

@@ -1,0 +1,14 @@
+#pragma code_page(65001)
+// German (Germany)
+
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "Einstellungen"
+    IDS_MENU_EXIT           "Beenden"
+    IDS_ERROR_STARTUP       "VortexPanes konnte nicht gestartet werden."
+    IDS_ERROR_GRAPHICS      "Die Grafikausgabe konnte nicht initialisiert werden. VortexPanes wird beendet."
+    IDS_ERROR_TRAY_ICON     "Das Symbol im Infobereich konnte nicht erstellt werden. VortexPanes wird beendet."
+END

@@ -1,0 +1,15 @@
+#pragma code_page(65001)
+// Chinese (Simplified, China)
+// Machine-translated – please review
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "设置"
+    IDS_MENU_EXIT           "退出"
+    IDS_ERROR_STARTUP       "无法启动 VortexPanes。"
+    IDS_ERROR_GRAPHICS      "无法初始化图形输出。VortexPanes 将关闭。"
+    IDS_ERROR_TRAY_ICON     "无法创建通知区域图标。VortexPanes 将关闭。"
+END

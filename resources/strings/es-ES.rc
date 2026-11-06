@@ -1,0 +1,15 @@
+#pragma code_page(65001)
+// Spanish (Spain)
+// Machine-translated – please review
+
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MODERN
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "Configuración"
+    IDS_MENU_EXIT           "Salir"
+    IDS_ERROR_STARTUP       "No se pudo iniciar VortexPanes."
+    IDS_ERROR_GRAPHICS      "No se pudo inicializar la salida gráfica. VortexPanes se cerrará."
+    IDS_ERROR_TRAY_ICON     "No se pudo crear el icono del área de notificación. VortexPanes se cerrará."
+END

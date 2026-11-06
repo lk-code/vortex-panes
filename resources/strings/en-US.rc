@@ -1,0 +1,14 @@
+#pragma code_page(65001)
+// English (United States): reference language and fallback
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TOOLTIP        "VortexPanes"
+    IDS_MENU_SETTINGS       "Settings"
+    IDS_MENU_EXIT           "Exit"
+    IDS_ERROR_STARTUP       "VortexPanes could not be started."
+    IDS_ERROR_GRAPHICS      "The graphics output could not be initialized. VortexPanes will close."
+    IDS_ERROR_TRAY_ICON     "The notification area icon could not be created. VortexPanes will close."
+END

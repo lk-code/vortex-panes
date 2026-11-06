@@ -1,0 +1,55 @@
+#pragma code_page(65001)
+// Generated from resources/app.rc.in by CMake (configure_file). Do not edit app.rc.
+
+#include <winresrc.h>
+#include "resource.h"
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+// --- Icons --------------------------------------------------------------------
+IDI_APP        ICON "@VP_RESOURCE_DIR@/app.ico"
+IDI_TRAY_LIGHT ICON "@VP_RESOURCE_DIR@/tray_light.ico"
+IDI_TRAY_DARK  ICON "@VP_RESOURCE_DIR@/tray_dark.ico"
+
+// --- Version information ------------------------------------------------------
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+ PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "@VP_DEVELOPER@"
+            VALUE "FileDescription", "@VP_APP_NAME@"
+            VALUE "FileVersion", "@PROJECT_VERSION@"
+            VALUE "InternalName", "@VP_APP_NAME@"
+            VALUE "LegalCopyright", "© 2026 @VP_DEVELOPER@, MIT License"
+            VALUE "OriginalFilename", "@VP_APP_NAME@.exe"
+            VALUE "ProductName", "@VP_APP_NAME@"
+            VALUE "ProductVersion", "@PROJECT_VERSION@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END
+
+// --- Localized strings (one STRINGTABLE per language) -------------------------
+#include "strings/en-US.rc"
+#include "strings/de-DE.rc"
+#include "strings/es-ES.rc"
+#include "strings/fr-FR.rc"
+#include "strings/zh-CN.rc"
+#include "strings/ja-JP.rc"
+#include "strings/ko-KR.rc"
